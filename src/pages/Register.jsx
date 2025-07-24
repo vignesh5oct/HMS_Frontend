@@ -6,8 +6,10 @@ const Register = () => {
    const [formData, setFormData] = useState({
     name: "",
     email: "",
+    phone:"",
     password: "",
     confirm_password: "",
+    role: "",
   });
   const [errors, setErrors] = useState({});
 
@@ -26,6 +28,11 @@ const Register = () => {
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = "Invalid email format";
     }
+    if (!formData.phone.trim()) {
+      newErrors.phone = "Phone number is required";
+    } else if (!/^\d{10}$/.test(formData.phone)) {
+      newErrors.phone = "Phone number must be 10 digits"; 
+    }
     if (!formData.password) {
       newErrors.password = "Password is required";
     } else if (formData.password.length < 6) {
@@ -33,6 +40,9 @@ const Register = () => {
     }
     if (formData.confirm_password !== formData.password) {
       newErrors.confirm_password = "Passwords do not match";
+    }
+    if (!formData.role) {
+      newErrors.role = "Please select your role";
     }
 
     setErrors(newErrors);
@@ -43,11 +53,21 @@ const Register = () => {
     e.preventDefault();
     if (!validate()) return;
 
+     const payload = {
+      name: formData.name,
+      email: formData.email,
+      phone: formData.phone,
+      password: formData.password,
+      confirm_password: formData.confirm_password,
+      is_doctor: formData.role === "doctor",
+      is_patient: formData.role === "patient",
+    };
+
     try {
       const res = await fetch("http://localhost:8000/api/register/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
@@ -83,8 +103,8 @@ const Register = () => {
                     <div className="col-md-12 col-lg-6 login-right">
                       <div className="login-header">
                         <h3>
-                          Patient Register{" "}
-                          <Link to="/doctor-register">Are you a Doctor?</Link>
+                          Register{" "}
+                          {/* <Link to="/doctor-register">Are you a Doctor?</Link> */}
                         </h3>
                       </div>
                       <form onSubmit={handleSubmit}>
@@ -98,6 +118,13 @@ const Register = () => {
                           <input type="text" name="email" value={formData.email} onChange={handleChange} className="form-control" />
                           {errors.email && <small className="text-danger">{errors.email}</small>}
                         </div>
+
+                         <div className="mb-3">
+                          <label className="form-label">Phone</label>
+                          <input type="text" name="phone" maxLength={10} value={formData.phone} onChange={handleChange} className="form-control" />
+                          {errors.email && <small className="text-danger">{errors.phone}</small>}
+                        </div>
+
                         <div className="mb-3">
                           <label className="form-label">Password</label>
                           <input type="password" name="password" value={formData.password} onChange={handleChange} className="form-control" />
@@ -108,6 +135,35 @@ const Register = () => {
                           <input type="password" name="confirm_password" value={formData.confirm_password} onChange={handleChange} className="form-control" />
                           {errors.confirm_password && <small className="text-danger">{errors.confirm_password}</small>}
                         </div>
+                        <div className="mb-3">
+                        <label className="form-label">Register as</label>
+                        <div>
+                          <div className="form-check form-check-inline">
+                            <input
+                              className="form-check-input"
+                              type="radio"
+                              name="role"
+                              value="patient"
+                              checked={formData.role === "patient"}
+                              onChange={handleChange}
+                            />
+                            <label className="form-check-label">Patient</label>
+                          </div>
+                          <div className="form-check form-check-inline">
+                            <input
+                              className="form-check-input"
+                              type="radio"
+                              name="role"
+                              value="doctor"
+                              checked={formData.role === "doctor"}
+                              onChange={handleChange}
+                            />
+                            <label className="form-check-label">Doctor</label>
+                          </div>
+                        </div>
+                        {errors.role && <small className="text-danger">{errors.role}</small>}
+                      </div>
+
                         <button type="submit" className="btn btn-primary-gradient w-100">Sign Up</button>
                       </form>
                     </div>
